@@ -1,0 +1,56 @@
+name: ci
+
+on:
+  push:
+    branches: ["main"]
+  pull_request:
+
+jobs:
+  lint:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Install deps
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt
+
+      - name: Ruff format check
+        run: |
+          ruff format --check .
+
+      - name: Ruff lint
+        run: |
+          ruff check .
+
+  dbt_parse:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Install deps
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt
+
+      # This does NOT require BigQuery creds; it's just a compilation sanity check
+      - name: dbt parse (if dbt project exists)
+        run: |
+          if [ -d "dbt" ]; then
+            cd dbt
+            dbt --version
+            dbt parse
+          else
+            echo "No dbt directory found; skipping dbt parse."
+          fi
