@@ -1,0 +1,2 @@
+dbt-bigquery==1.8.3
+ruff==0.7.4
