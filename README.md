@@ -27,3 +27,7 @@ Goal: a production-style AE artefact: **raw → staging → core → marts → B
 ├─ scripts/ # one-off helper scripts (loading, profiling)
 ├─ sql/ # if not using dbt, keep views/models here
 └─ dbt/ # dbt project (recommended)
+
+Credits
+
+Dataset: RavenStack synthetic SaaS dataset by River @ Rivalytics (Kaggle). License: MIT / synthetic, no PII.
