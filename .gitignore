@@ -1,0 +1,51 @@
+
+---
+
+## `.gitignore` (Python + dbt + BigQuery-ish)
+
+```gitignore
+# ---- Python ----
+__pycache__/
+*.py[cod]
+*.pyo
+*.pyd
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+*.egg-info/
+dist/
+build/
+
+# ---- Virtualenv ----
+.venv/
+venv/
+ENV/
+env/
+
+# ---- OS / editor ----
+.DS_Store
+Thumbs.db
+.vscode/
+.idea/
+
+# ---- Secrets / credentials ----
+*.env
+.env.*
+credentials.json
+service-account*.json
+**/profiles.yml  
+profiles.yml
+secrets.yml
+secrets/*.yml
+# ---- dbt ----
+# dbt credentials 
+**/target/
+**/dbt_packages/
+**/logs/
+
+# ---- Data files ----
+data/raw/
+*.csv
+
+# ---- Notebooks ----
+.ipynb_checkpoints/
