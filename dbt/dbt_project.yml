@@ -14,13 +14,18 @@ models:
   saas_warehouse_analytics_pipeline:
     +materialized: view
     staging:
-      +schema: stg
+      +schema: ravenstack_stg
     core:
-      +schema: core
+      +schema: ravenstack_core
       +materialized: table
     marts:
-      +schema: marts
+      +schema: ravenstack_marts
       +materialized: table
     audit:
-      +schema: audit
+      +schema: ravenstack_audit
       +materialized: table
+
+seeds:
+  saas_warehouse_analytics_pipeline:
+    +schema: ravenstack_raw
+    +quote_columns: false

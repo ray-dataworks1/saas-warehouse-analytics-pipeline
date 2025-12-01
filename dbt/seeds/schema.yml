@@ -1,0 +1,8 @@
+version: 2
+
+seeds:
+  - name: ravenstack_support_tickets
+    config:
+      column_types:
+        resolution_time_hours: FLOAT64
+        satisfaction_score: FLOAT64
