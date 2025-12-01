@@ -1,0 +1,12 @@
+version: 2
+
+sources:
+  - name: ravenstack_raw
+    database: "{{ target.project }}"
+    schema: "{{ target.schema }}_raw"
+    tables:
+      - name: accounts
+      - name: subscriptions
+      - name: feature_usage
+      - name: support_tickets
+      - name: churn_events

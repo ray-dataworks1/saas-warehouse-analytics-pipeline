@@ -44,7 +44,19 @@ jobs:
           python -m pip install --upgrade pip
           pip install -r requirements.txt
 
-      # This does NOT require BigQuery creds; it's just a compilation sanity check
+            - name: Create CI dbt profile (no secrets)
+        run: |
+          cat > dbt/profiles.yml << 'EOF'
+          saas_warehouse_analytics_pipeline:
+            target: ci
+            outputs:
+              ci:
+                type: bigquery
+                method: oauth
+                project: dummy-project
+                dataset: ravenstack
+                location: EU
+                threads: 2
       - name: dbt parse (if dbt project exists)
         run: |
           if [ -d "dbt" ]; then

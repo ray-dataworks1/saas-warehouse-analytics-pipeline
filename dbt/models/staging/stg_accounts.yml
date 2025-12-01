@@ -1,0 +1,10 @@
+version: 2
+
+models:
+  - name: stg_accounts
+    description: "Typed/stabilised accounts table."
+    columns:
+      - name: account_id
+        tests:
+          - not_null
+          - unique

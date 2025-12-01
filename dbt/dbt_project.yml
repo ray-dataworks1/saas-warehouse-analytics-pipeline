@@ -1,0 +1,26 @@
+name: saas_warehouse_analytics_pipeline
+version: "1.0.0"
+config-version: 2
+
+profile: saas_warehouse_analytics_pipeline
+
+model-paths: ["models"]
+macro-paths: ["macros"]
+
+target-path: "target"
+clean-targets: ["target", "dbt_packages", "logs"]
+
+models:
+  saas_warehouse_analytics_pipeline:
+    +materialized: view
+    staging:
+      +schema: stg
+    core:
+      +schema: core
+      +materialized: table
+    marts:
+      +schema: marts
+      +materialized: table
+    audit:
+      +schema: audit
+      +materialized: table
