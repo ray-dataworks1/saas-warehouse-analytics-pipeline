@@ -49,3 +49,7 @@ data/raw/
 
 # ---- Notebooks ----
 .ipynb_checkpoints/
+
+#-------Drafts ----
+drafts/
+```
