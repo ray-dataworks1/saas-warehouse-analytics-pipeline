@@ -5,6 +5,7 @@ config-version: 2
 profile: saas_warehouse_analytics_pipeline
 
 model-paths: ["models"]
+seed-paths: ["seeds"]
 macro-paths: ["macros"]
 
 target-path: "target"
@@ -14,18 +15,18 @@ models:
   saas_warehouse_analytics_pipeline:
     +materialized: view
     staging:
-      +schema: ravenstack_stg
+      +schema: stg
     core:
-      +schema: ravenstack_core
+      +schema: core
       +materialized: table
     marts:
-      +schema: ravenstack_marts
+      +schema: marts
       +materialized: table
     audit:
-      +schema: ravenstack_audit
+      +schema: audit
       +materialized: table
 
 seeds:
   saas_warehouse_analytics_pipeline:
-    +schema: ravenstack_raw
+    +schema: raw
     +quote_columns: false

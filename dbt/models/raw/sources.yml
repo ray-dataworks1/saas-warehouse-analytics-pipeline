@@ -1,0 +1,291 @@
+version: 2
+
+sources:
+  - name: ravenstack_raw
+    description: "Source data for the SaaS Warehouse Analytics Pipeline"
+    schema: ravenstack_raw
+    # loaded_at_field: 
+    
+    # # Source-level freshness (can be overridden at table level)
+    # freshness:
+    #   warn_after: {count: 12, period: hour}
+    #   error_after: {count: 24, period: hour}
+    
+    tables:
+      - name: ravenstack_accounts
+        description: "Ravenstack account information"
+        # freshness:
+        #   warn_after: {count: 12, period: hour}
+        #   error_after: {count: 24, period: hour}
+        tests:
+          - dbt_expectations.expect_table_row_count_to_be_between:
+              arguments:
+                min_value: 1        # fail if 0 rows
+                max_value: null    
+        columns:
+          - name: account_id
+            description: "Primary key - unique identifier for each account"
+            tests:
+              - unique
+              - not_null
+          - name: account_name
+            description: "Name of the account"
+            tests:
+              - not_null
+          - name: industry
+            description: "Industry vertical of the account"
+          - name: country
+            description: "Country where the account is located"
+          - name: signup_date
+            description: "Date when the account signed up"
+            tests:
+              - not_null
+          - name: referral_source
+            description: "Source from which the account was referred"
+          - name: plan_tier
+            description: "Subscription plan tier of the account"
+            tests:
+              - not_null
+              - accepted_values:
+                  values: ['Free', 'Basic', 'Pro', 'Enterprise']
+                  severity: warn
+          - name: seats
+            description: "Number of seats/licenses for the account"
+            tests:
+              - not_null
+              - dbt_expectations.expect_column_values_to_be_between:
+                  arguments:
+                    min_value: 1
+          - name: is_trial
+            description: "Indicates if the account is on a trial"
+            tests:
+              - not_null
+          - name: churn_flag
+            description: "Indicates if the account has churned"
+            tests:
+              - not_null
+      
+      - name: ravenstack_churn_events
+        description: "Churn events for Ravenstack accounts"
+        # freshness:
+        #   warn_after: {count: 24, period: hour}
+        #   error_after: {count: 48, period: hour}
+        tests:
+          - dbt_expectations.expect_table_row_count_to_be_between:
+              arguments:
+                min_value: 0        
+                max_value: null
+        columns:
+          - name: churn_event_id
+            description: "Primary key - unique identifier for each churn event"
+            tests:
+              - unique
+              - not_null
+          - name: account_id
+            description: "Foreign key - references ravenstack_accounts.account_id"
+            tests:
+              - not_null
+              - relationships:
+                  to: ref('ravenstack_accounts')
+                  field: account_id
+          - name: churn_date
+            description: "Date when the churn event occurred"
+            tests:
+              - not_null
+          - name: reason_code
+            description: "Reason provided for the churn"
+          - name: refund_amount_usd
+            description: "Refund amount issued in USD"
+            tests:
+              - dbt_expectations.expect_column_values_to_be_between:
+                  arguments:
+                    min_value: 0.0
+          - name: preceding_upgrade_flag
+            description: "Indicates if there was an upgrade before churn"
+            tests:
+              - not_null
+          - name: preceding_downgrade_flag
+            description: "Indicates if there was a downgrade before churn"
+            tests:
+              - not_null
+          - name: is_reactivation
+            description: "Indicates if the churned account was later reactivated"
+            tests:
+              - not_null
+          - name: feedback_text
+            description: "Feedback text provided by the account before churn"
+      - name: ravenstack_feature_usage
+        description: "Feature usage metrics for Ravenstack accounts"
+        # freshness:
+        #   warn_after: {count: 6, period: hour}
+        #   error_after: {count: 12, period: hour}
+        tests:
+        - dbt_expectations.expect_table_row_count_to_be_between:
+            arguments:
+              min_value: 1        # fail if 0 rows
+              max_value: null    
+        columns:
+          - name: usage_id
+            description: "Primary key - unique identifier for each usage record. Note: raw table has duplicate entries, generate surrogate key in staging."
+            tests:
+              - not_null
+          - name: subscription_id
+            description: "Foreign key - references ravenstack_subscriptions.subscription_id"
+            tests:
+              - not_null
+              - relationships:
+                  to: ref('ravenstack_subscriptions')
+                  field: subscription_id
+          - name: usage_date
+            description: "Date of the feature usage"
+            tests:
+              - not_null  
+          - name: feature_name
+            description: "Name of the feature being used"
+            tests:
+              - not_null
+          - name: usage_count
+            description: "Number of times the feature was used on the given date"
+            tests:
+              - not_null
+              - dbt_expectations.expect_column_values_to_be_between:
+                  arguments:
+                    min_value: 0
+          - name: usage_duration_secs
+            description: "Total duration of feature usage in seconds"
+            tests:
+              - dbt_expectations.expect_column_values_to_be_between:
+                  arguments:
+                    min_value: 0
+          - name: error_count
+            description: "Number of errors encountered during feature usage"
+            tests:
+              - not_null
+              - dbt_expectations.expect_column_values_to_be_between:
+                  arguments:
+                    min_value: 0                
+          - name: is_beta_feature
+            description: "Indicates if the feature is in beta"
+            tests:
+              - not_null
+      - name: ravenstack_subscriptions
+        description: "Subscription details for Ravenstack accounts"
+        # freshness:
+        #   warn_after: {count: 12, period: hour}
+        #   error_after: {count: 24, period: hour}
+        tests:
+          - dbt_expectations.expect_table_row_count_to_be_between:
+              arguments:
+                min_value: 1        # fail if 0 rows
+                max_value: null
+        columns:
+          - name: subscription_id
+            description: "Primary key - unique identifier for each subscription"
+            tests:
+              - unique
+              - not_null
+          - name: account_id
+            description: "Foreign key - references ravenstack_accounts.account_id"
+            tests:
+              - not_null
+              - relationships:
+                  to: ref('ravenstack_accounts')
+                  field: account_id
+          - name: start_date
+            description: "Start date of the subscription"
+            tests:
+              - not_null
+          - name: end_date
+            description: "End date of the subscription"
+          - name: plan_tier
+            description: "Subscription plan tier"
+            tests:
+              - not_null
+          - name: seats
+            description: "Number of seats/licenses for the subscription"
+          - name: mrr_amount
+            description: "Monthly Recurring Revenue amount in USD"
+            tests:
+              - not_null
+              - dbt_expectations.expect_column_values_to_be_between:
+                  arguments:
+                    min_value: 0.0
+          - name: arr_amount
+            description: "Annual Recurring Revenue amount in USD"
+            tests:
+              - not_null
+              - dbt_expectations.expect_column_values_to_be_between:
+                  arguments:
+                    min_value: 0.0
+          - name: is_trial
+            description: "Indicates if the subscription is a trial"
+            tests:
+              - not_null
+          - name: upgrade_flag
+            description: "Indicates if the subscription was upgraded"
+            tests:
+              - not_null
+          - name: downgrade_flag  
+            description: "Indicates if the subscription was downgraded"
+            tests:
+              - not_null
+          - name: churn_flag
+            description: "Indicates if the subscription has churned"
+            tests:
+              - not_null
+          - name: billing_frequency
+            description: "Billing frequency of the subscription (e.g., monthly, annual)"
+          - name: auto_renew_flag
+            description: "Indicates if the subscription is set to auto-renew"
+            tests:
+              - not_null
+      - name: ravenstack_support_tickets
+        description: "Support ticket data for Ravenstack accounts"
+        # freshness:
+        #   warn_after: {count: 24, period: hour}
+        #   error_after: {count: 48, period: hour}
+        tests:
+        - dbt_expectations.expect_table_row_count_to_be_between:
+            arguments:
+              min_value: 1        # fail if 0 rows
+              max_value: null
+        columns:
+          - name: ticket_id
+            description: "Primary key - unique identifier for each support ticket"
+            tests:
+              - unique
+              - not_null
+          - name: account_id
+            description: "Foreign key - references ravenstack_accounts.account_id"
+            tests:
+              - not_null
+              - relationships:
+                  to: ref('ravenstack_accounts')
+                  field: account_id
+          - name: submitted_at
+            description: "Timestamp when the support ticket was submitted"
+            tests:
+              - not_null
+          - name: closed_at
+            description: "Timestamp when the support ticket was closed"
+          - name: resolution_time_hours
+            description: "Time taken to resolve the ticket in hours"
+            tests:
+              - not_null
+          - name: priority
+            description: "Priority level of the support ticket"
+            tests:
+              - not_null
+              - accepted_values:
+                  values: ['low', 'medium', 'high', 'urgent']
+                  severity: warn
+          - name: first_response_time_minutes
+            description: "Initial time taken to resolve the ticket in minutes"
+            tests:
+              - not_null
+          - name: satisfaction_score
+            description: "Customer satisfaction score for the ticket resolution"
+          - name: escalation_flag
+            description: "Indicates if the ticket was escalated to higher support tiers"
+            tests:
+              - not_null
