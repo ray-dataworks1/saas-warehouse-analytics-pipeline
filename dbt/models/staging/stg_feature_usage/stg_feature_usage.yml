@@ -1,0 +1,55 @@
+version: 2
+
+models:
+  - name: stg_feature_usage
+    description: "Daily feature usage aggregated to (subscription_id, usage_date, feature_name, is_beta_feature). Generates surrogate key because source usage_id is not unique."
+    columns:
+      - name: feature_usage_sk
+        description: "Surrogate key for feature usage grain"
+        tests:
+          - unique
+          - not_null
+
+      - name: subscription_id
+        description: "FK to stg_subscriptions.subscription_id"
+        tests:
+          - not_null
+          - relationships:
+              arguments:
+                to: ref('stg_subscriptions')
+                field: subscription_id
+
+      - name: usage_date
+        description: "Date of usage"
+        tests:
+          - not_null
+
+      - name: feature_name
+        description: "Feature identifier"
+        tests:
+          - not_null
+          - name_starts_with_feature:
+              column_name: feature_name
+
+      - name: usage_count
+        description: "Total usage count for the grain"
+        tests:
+          - dbt_expectations.expect_column_values_to_be_between:
+              min_value: 0
+
+      - name: usage_duration_secs
+        description: "Total duration seconds for the grain"
+        tests:
+          - dbt_expectations.expect_column_values_to_be_between:
+              min_value: 0
+
+      - name: error_count
+        description: "Total errors for the grain"
+        tests:
+          - dbt_expectations.expect_column_values_to_be_between:
+              min_value: 0
+
+      - name: is_beta_feature
+        description: "Whether feature was beta at time of usage"
+        tests:
+          - not_null

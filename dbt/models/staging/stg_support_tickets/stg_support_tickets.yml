@@ -1,0 +1,74 @@
+version: 2
+
+models:
+  - name: stg_support_tickets
+    description: "Typed/stabilised support tickets table."
+    tests:
+      - dbt_expectations.expect_column_pair_values_A_to_be_greater_than_B:
+          arguments:
+            column_A: closed_at
+            column_B: submitted_at
+            or_equal: true
+            row_condition: "closed_at is not null"
+
+    columns:
+      - name: ticket_id
+        description: "Primary key - unique identifier for each support ticket"
+        tests:
+          - unique
+          - not_null
+
+      - name: account_id
+        description: "Foreign key - references stg_accounts.account_id"
+        tests:
+          - not_null
+          - relationships:
+              arguments:
+                to: ref('stg_accounts')
+                field: account_id
+
+      - name: submitted_at
+        description: "Timestamp when the support ticket was submitted"
+        tests:
+          - not_null
+          - valid_submitted_at_timestamp:
+              arguments:
+                column_name: submitted_at
+
+      - name: closed_at
+        description: "Timestamp when the support ticket was closed"
+
+      - name: resolution_time_hours
+        description: "Time taken to resolve the ticket in hours"
+        tests:
+          - not_null
+          - dbt_expectations.expect_column_values_to_be_between:
+              arguments:
+                min_value: 0
+
+      - name: priority_level
+        description: "Priority level of the support ticket"
+        tests:
+          - not_null
+          - accepted_values:
+              arguments:
+                values: ['low', 'medium', 'high', 'urgent']
+              severity: warn
+
+      - name: first_response_time_minutes
+        description: "Initial time taken to resolve the ticket in minutes"
+        tests:
+          - not_null
+
+      - name: satisfaction_score
+        description: "Customer satisfaction score for the ticket resolution"
+        tests:
+          - dbt_expectations.expect_column_values_to_be_between:
+              arguments:
+                min_value: 0
+                max_value: 5
+
+      - name: escalation_flag
+        description: "Indicates if the ticket was escalated to higher support tiers"
+        tests:
+          - not_null

@@ -1,0 +1,90 @@
+models:
+- name: stg_subscriptions
+  description: "Staging model for subscription details for Ravenstack accounts"
+  tests:
+    - dbt_expectations.expect_column_pair_values_A_to_be_greater_than_B:
+        arguments:
+            column_A: end_date
+            column_B: start_date
+            or_equal: true
+            row_condition: "end_date is not null"
+  columns:
+    - name: subscription_id
+      description: "Primary key - unique identifier for each subscription"
+      tests:
+        - unique
+        - not_null
+    - name: account_id
+      description: "Foreign key - references stg_accounts.account_id"
+      tests:
+        - not_null
+        - relationships:
+              to: ref('stg_accounts')
+              field: account_id
+    - name: start_date
+      description: "Start date of the subscription"
+      tests:
+        - not_null
+        - valid_start_date:
+            arguments:
+              column_name: start_date 
+              # make this test macro before running dbt build :), see macros/tests/valid_start_date.sql
+    - name: end_date
+      description: "End date of the subscription"
+    - name: plan_tier
+      description: "Subscription plan tier"
+      tests:
+          - not_null
+          - accepted_values:
+              arguments:
+                values: ['Free','Basic', 'Pro', 'Enterprise']
+              severity: warn
+    - name: seats
+      description: "Number of seats/licenses for the subscription"
+      tests:
+        - not_null
+        - dbt_expectations.expect_column_values_to_be_between:
+            arguments:
+              min_value: 1
+    - name: mrr_amount
+      description: "Monthly Recurring Revenue amount in USD"
+      tests:
+        - not_null
+        - dbt_expectations.expect_column_values_to_be_between:
+            arguments:
+               min_value: 0.0
+    - name: arr_amount
+      description: "Annual Recurring Revenue amount in USD"
+      tests:
+        - not_null
+        - dbt_expectations.expect_column_values_to_be_between:
+            arguments:
+                min_value: 0.0
+    - name: is_trial
+      description: "Indicates if the subscription is a trial"
+      tests:
+        - not_null
+    - name: upgrade_flag
+      description: "Indicates if the subscription was upgraded"
+      tests:
+        - not_null
+    - name: downgrade_flag  
+      description: "Indicates if the subscription was downgraded"
+      tests:
+        - not_null
+    - name: churn_flag
+      description: "Indicates if the subscription has churned"
+      tests:
+        - not_null
+    - name: billing_frequency
+      description: "Billing frequency of the subscription (e.g., monthly, annual)"
+      tests:
+        - not_null
+        - accepted_values:
+            arguments:
+              values: ['monthly', 'annual']
+            severity: warn
+    - name: auto_renew_flag
+      description: "Indicates if the subscription is set to auto-renew"
+      tests:
+        - not_null
