@@ -1,0 +1,53 @@
+version: 2
+
+models:
+  - name: stg_churn_events
+    description: "Staged churn events data from Ravenstack."
+    columns:
+      - name: churn_event_id
+        description: "Primary key - unique identifier for each churn event"
+        tests:
+            - unique
+            - not_null
+      - name: account_id
+        description: "Foreign key - references stg_accounts.account_id"
+        tests:
+            - not_null
+            - relationships:
+                arguments:
+                  to: ref('stg_accounts')
+                  field: account_id
+      - name: churn_date
+        description: "Date when the churn event occurred"
+        tests:
+            - not_null
+            - valid_churn_date:
+                arguments:
+                  column_name: churn_date
+      - name: reason_code
+        description: "Reason provided for the churn"
+        tests:
+          - accepted_values:
+              arguments:
+                  values: ['pricing', 'features', 'support', 'budget', 'competitor', 'other', 'unknown']
+              severity: warn
+      - name: refund_amount_usd
+        description: "Refund amount issued in USD"
+        tests:
+          - dbt_expectations.expect_column_values_to_be_between:
+              arguments:
+                  min_value: 0.0
+      - name: preceding_upgrade_flag
+        description: "Indicates if there was an upgrade before churn"
+        tests:
+          - not_null
+      - name: preceding_downgrade_flag
+        description: "Indicates if there was a downgrade before churn"
+        tests:
+          - not_null
+      - name: is_reactivation
+        description: "Indicates if the churned account was later reactivated"
+        tests:
+          - not_null
+      - name: feedback_text
+        description: "Feedback text provided by the account before churn"

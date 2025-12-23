@@ -40,3 +40,18 @@
         else 'monthly'
     end
 {%- endmacro %}
+
+{% macro normalise_churn_reason(column_name) -%}
+    -- standardise churn reason to clean, lowercase values
+    case lower(trim({{ column_name}}))
+        when 'pricing' then 'pricing'
+        when 'features' then 'features'
+        when 'competition' then 'competition'
+        when 'support' then 'support'
+        when 'budget' then 'budget'
+        when 'service' then 'service'
+        when 'other' then 'other'
+        when 'unknown' then 'unknown'
+        else 'other'
+    end
+{%- endmacro %}
