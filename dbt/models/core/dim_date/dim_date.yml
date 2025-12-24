@@ -1,0 +1,79 @@
+version: 2
+
+models:
+  - name: dim_date
+    description: "One row per calendar day spanning from first signup to last churn (or chosen max boundary)."
+    tests:
+      - dbt_utils.expression_is_true:
+          expression: "date >= date '2000-01-01'"
+          severity: warn
+      - dbt_utils.expression_is_true:
+          expression: "date_key = cast(format_date('%Y%m%d', date) as int64)"
+          severity: warn
+      - dbt_utils.expression_is_true:
+          expression: "date <= current_date()"
+          severity: warn
+
+
+    columns:
+      - name: date
+        description: "Calendar date (grain of the table)."
+        tests:
+          - not_null
+          - unique
+
+      - name: date_key
+        description: "Surrogate date key in YYYYMMDD integer format."
+        tests:
+          - not_null
+          - unique
+
+      - name: year
+        tests:
+          - not_null
+          - dbt_utils.accepted_range:
+              min_value: 2000
+              max_value: 2100
+              severity: warn
+              
+
+      - name: month
+        tests:
+          - not_null
+          - dbt_utils.accepted_range:
+              min_value: 1
+              max_value: 12
+              severity: warn
+              
+
+      - name: day
+        tests:
+          - not_null
+          - dbt_utils.accepted_range:
+              min_value: 1
+              max_value: 31
+              severity: warn
+
+      - name: quarter
+        tests:
+          - not_null
+          - dbt_utils.accepted_range:
+              min_value: 1
+              max_value: 4
+              severity: warn
+
+      - name: iso_week
+        tests:
+          - not_null
+          - dbt_utils.accepted_range:
+              min_value: 1
+              max_value: 53
+              severity: warn
+
+      - name: month_id
+        tests:
+          - not_null
+
+      - name: is_weekend
+        tests:
+          - not_null

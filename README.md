@@ -17,7 +17,7 @@ Goal: a production-style AE artefact: **raw → staging → core → marts → B
 - CI: **GitHub Actions**
 
 ## Repo structure
-
+```
 .
 ├─ bi/ # dashboards, screenshots, links
 ├─ data/ # optional local copies / samples 
@@ -28,6 +28,7 @@ Goal: a production-style AE artefact: **raw → staging → core → marts → B
 ├─ sql/ # if not using dbt, keep views/models here
 └─ dbt/ # dbt project (recommended)
 
+```
 Credits
 
 Dataset: RavenStack synthetic SaaS dataset by River @ Rivalytics (Kaggle). License: MIT / synthetic, no PII.
