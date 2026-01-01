@@ -1,0 +1,71 @@
+version: 2
+
+models:
+  - name: dim_account
+    description: "Dimension table containing account information"
+    columns:
+      - name: account_id
+        tests:
+          - not_null
+          - unique
+      - name: account_name
+        description: "Readable name of the account in the standardised format (Company_*), with star being some integer"
+        tests:
+          - not_null  
+          - name_starts_with_company:
+              column_name: account_name
+      - name: industry
+        description: "Industry vertical of the account"
+        tests:
+          - accepted_values:
+              values: ["EdTech", "FinTech", "HealthTech", "DevTools", "Cybersecurity"]
+          - not_null
+      - name: country
+        description: "Country where the account is located"
+        tests:
+         - accepted_values:
+             values: ["US", "CA", "UK", "IN", "DE", "FR", "AU"]
+             severity: warn
+         - not_null
+      - name: signup_date
+        description: "Date when the account signed up"
+        tests:
+          - not_null
+          - valid_signup_date:
+              column_name: signup_date
+
+      - name: referral_source
+        description: "Normalised referral source of the account."
+        tests:
+          - accepted_values:
+              values: ["organic", "partner", "ads", "other", "event"]
+              severity: warn
+      - name: signup_plan_tier
+        description: "Normalised subscription plan tier of the account."
+        tests:
+          - accepted_values:
+                values: ['Free', 'Basic', 'Pro', 'Enterprise']
+                severity: warn
+      - name: seats
+        description: "Number of seats/licenses for the account"
+        tests:
+          - dbt_expectations.expect_column_values_to_be_between:
+              arguments:
+                min_value: 1
+      - name: is_trial
+        description: "Indicates if the account is on a trial"
+        tests:
+          - not_null
+      - name: churn_flag
+        description: "Indicates if the account has churned"
+        tests:
+          - not_null
+      - name: signup_month
+        description: "Month when the account signed up (1-12)"
+        tests:
+          - not_null
+      - name: current_plan_tier
+        tests:
+          - accepted_values:
+                values: ['Free', 'Basic', 'Pro', 'Enterprise']
+                severity: warn
