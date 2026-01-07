@@ -7,17 +7,19 @@
 with span as (
   select
     least(
-      min(a.signup_date),
-      current_date()
+      -- earliest date we care about across sources
+      (select min(signup_date) from {{ ref('stg_accounts') }} where signup_date >= date '2000-01-01'),
+      (select min(cast(usage_date as date)) from {{ ref('stg_feature_usage') }}),
+      date '2000-01-01'
     ) as min_date,
+
     greatest(
-      coalesce(max(c.churn_date), current_date()),
+      -- latest date across sources, plus a safety buffer
+      (select coalesce(max(c.churn_date), date '2000-01-01')
+       from {{ ref('stg_churn_events') }} c),
+      (select max(cast(usage_date as date)) from {{ ref('stg_feature_usage') }}),
       current_date()
     ) as max_date
-  from {{ ref('stg_accounts') }} a
-  left join {{ ref('stg_churn_events') }} c 
-    on a.account_id = c.account_id
-  where a.signup_date >= date '2000-01-01'
 ),
 dates as (
   select date_add(min_date, interval i day) as calendar_date

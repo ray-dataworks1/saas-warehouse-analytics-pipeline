@@ -1,0 +1,61 @@
+models:
+- name: fct_subscription_lifecycle
+  description: "Fact table capturing the lifecycle events of subscriptions for Ravenstack accounts"
+  tests:
+    - dbt_expectations.expect_column_pair_values_A_to_be_greater_than_B:
+        arguments:
+            column_A: event_end
+            column_B: event_start
+            or_equal: true
+            row_condition: "event_end is not null"
+    - dbt_utils.unique_combination_of_columns:
+        combination_of_columns:
+            - subscription_id
+            - event_start
+  columns:
+    - name: subscription_id
+      description: "Primary key - unique identifier for each subscription"
+      tests:
+        - unique
+        - not_null
+    - name: account_id
+      description: "Foreign key - references dim_account.account_id"
+      tests:
+        - not_null
+        - relationships:
+              to: ref('stg_accounts')
+              field: account_id
+    - name: event_start
+      description: "Start date of the subscription event"
+      tests:
+        - not_null
+    - name: event_end
+      description: "End date of the subscription event"
+    - name: seats
+      description: "Number of seats/licenses for the subscription"
+      tests:
+        - not_null
+        - dbt_expectations.expect_column_values_to_be_between:
+            arguments:
+              min_value: 1
+    - name: plan_tier
+      description: "Subscription plan tier"
+      tests:
+          - not_null
+          - accepted_values:
+              arguments:
+                values: ['Free','Basic', 'Pro', 'Enterprise']
+              severity: warn
+    - name: mrr
+      description: "Monthly Recurring Revenue amount in USD"
+      tests:
+        - not_null
+        - dbt_expectations.expect_column_values_to_be_between:
+            arguments:
+               min_value: 0.0
+    - name: lifecycle_event_type
+      description: "Type of lifecycle event (e.g., upgrade, downgrade, renewal, churn)"
+      tests:
+        - accepted_values:
+            values: ["upgrade", "downgrade", "baseline"]
+            severity: warn

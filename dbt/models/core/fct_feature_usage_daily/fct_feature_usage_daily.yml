@@ -1,0 +1,42 @@
+models:
+  - name: fct_feature_usage_daily
+    description: "Daily feature usage aggregated to account level (grain: account_id + date + feature)."
+    columns:
+      - name: account_id
+        tests:
+          - not_null
+          - relationships:
+              to: ref('dim_account')
+              field: account_id
+
+      - name: date
+        tests:
+          - not_null
+          - relationships:
+              to: ref('dim_date')
+              field: date
+
+      - name: feature
+        tests: [not_null]
+
+      - name: usage_events
+        tests:
+          - not_null
+          - dbt_expectations.expect_column_values_to_be_between:
+              min_value: 0
+
+      - name: usage_duration_seconds
+        tests:
+          - not_null
+          - dbt_expectations.expect_column_values_to_be_between:
+              min_value: 0
+
+      - name: error_count
+        tests:
+          - not_null
+          - dbt_expectations.expect_column_values_to_be_between:
+              min_value: 0
+
+    tests:
+      - dbt_utils.unique_combination_of_columns:
+          combination_of_columns: ['account_id', 'date', 'feature']
