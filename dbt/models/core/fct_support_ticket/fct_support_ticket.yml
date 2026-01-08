@@ -1,0 +1,34 @@
+models:
+  - name: fct_support_ticket
+    description: "Core support ticket fact (grain: ticket_id)."
+    columns:
+      - name: ticket_id
+        tests: [not_null, unique]
+
+      - name: account_id
+        tests:
+          - not_null
+          - relationships:
+              to: ref('dim_account')
+              field: account_id
+
+      - name: submitted_at
+        tests: [not_null]
+
+      - name: closed_at
+        description: "May be null for open tickets."
+
+      - name: resolution_time_hours
+        tests:
+          - dbt_expectations.expect_column_values_to_be_between:
+              min_value: 0
+              strictly: false
+
+      - name: first_response_time_minutes
+        tests:
+          - dbt_expectations.expect_column_values_to_be_between:
+              min_value: 0
+              strictly: false
+
+      - name: satisfaction_score
+        description: "May be null if no CSAT submitted."
